@@ -23,7 +23,7 @@ module MSFLVisitors
 
   class Visitor
 
-    attr_accessor :clauses, :current_clause
+    attr_accessor :clauses, :current_clause, :arel_table
     attr_writer :mode
 
     def initialize
@@ -34,6 +34,8 @@ module MSFLVisitors
 
     def visit(node)
       if mode == :es_term
+        get_visitor.visit(node)
+      elsif mode == :arel
         get_visitor.visit(node)
       else
         case node
@@ -54,6 +56,8 @@ module MSFLVisitors
           TermFilterVisitor.new(self)
         when :es_term
           ESTermFilterVisitor.new(self)
+        when :arel
+          ArelFilterVisitor.new(self, arel_table)
         else
           AggregationsVisitor.new(self)
       end
@@ -66,8 +70,11 @@ module MSFLVisitors
       result
     end
 
-    def visit_tree(root)
-      [{clause: root.accept(self)}].concat(clauses).reject { |c| c[:clause] == "" }
+    def visit_tree(root, arel_table: nil)
+      return [{clause: root.accept(self)}].concat(clauses).reject { |c| c[:clause] == "" } unless mode == :arel
+      raise ArgumentError unless arel_table
+      @arel_table = arel_table.name
+      "#{root.accept(self)}"
     end
 
     private
@@ -237,6 +244,91 @@ module MSFLVisitors
 
           else
             fail ArgumentError, "AGGREGATIONS cannot visit: #{node.class.name}"
+        end
+      end
+
+      private
+
+      attr_reader :visitor
+    end
+
+    class ArelFilterVisitor
+      include VisitorHelpers
+
+      attr_accessor :arel_table
+
+      def initialize(visitor, arel_table)
+        @visitor = visitor
+        @arel_table = arel_table
+      end
+
+      BINARY_OPERATORS = {
+          Nodes::Containment            => '==',
+          Nodes::GreaterThan            => 'gt',
+          Nodes::GreaterThanEqual       => 'gte',
+          Nodes::Equal                  => 'eq',
+          Nodes::LessThan               => '<',
+          Nodes::LessThanEqual          => '<=',
+          Nodes::Match                  => '=~',
+      }
+
+
+
+      def visit(node)
+        case node
+          when  Nodes::Field
+            ":#{node.value.to_sym}"
+          when Nodes::Regex
+            regex_escape node.value.to_s
+          when  Nodes::Word
+            "\"#{node.value}\""
+          when Nodes::Date, Nodes::Time
+            "\"#{node.value.iso8601}\""
+          when  Nodes::Number, Nodes::Boolean
+            node.value
+
+          when  Nodes::QueryString
+            %(q(query_string:{default_field:"#{node.left.accept(visitor)}", query:#{node.right.accept(visitor)}}))
+
+          when  Nodes::Match
+            if node.right.is_a? Nodes::Set
+              escaped_str_frags = node.right.contents.map { |right_child| composable_expr_for(MSFLVisitors::Nodes::Regex.new(right_child.value.to_s).accept(visitor).inspect) }
+              escaped_str = "(" + escaped_str_frags.join('|') + ")"
+              "#{node.left.accept(visitor)} #{BINARY_OPERATORS[node.class]} " + %r[.*#{escaped_str}.*].inspect
+            else
+              "#{node.left.accept(visitor)} #{BINARY_OPERATORS[node.class]} " + MSFLVisitors::Nodes::Regex.new(node.right.value.to_s).accept(visitor).inspect
+            end
+          when  Nodes::Containment,
+              Nodes::GreaterThan,
+              Nodes::GreaterThanEqual,
+              Nodes::Equal,
+              Nodes::LessThan,
+              Nodes::LessThanEqual
+            %(#{arel_table}[#{node.left.accept(visitor)}].#{BINARY_OPERATORS[node.class]}(#{node.right.accept(visitor)}))
+          when  Nodes::Set
+            "[ " + node.contents.map { |n| n.accept(visitor) }.join(" , ") + " ]"
+          when Nodes::Filter
+            if node.contents.count == 1
+              node.contents.first.accept(visitor)
+            else
+              node.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
+            end
+
+          when Nodes::And
+            if node.set.contents.count == 1
+              node.set.contents.first.accept(visitor)
+            else
+              node.set.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
+            end
+
+          when Nodes::Foreign
+            "#{node.left.accept visitor}.filter { #{node.right.accept visitor} }"
+
+          when Nodes::Dataset
+            "has_child( :#{node.value} )"
+
+          else
+            fail ArgumentError, "ArelFilter cannot visit: #{node.class.name}"
         end
       end
 
