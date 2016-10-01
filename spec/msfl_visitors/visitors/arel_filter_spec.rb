@@ -12,7 +12,7 @@ describe MSFLVisitors::Visitor do
 
   subject(:result) { node.accept visitor }
 
-  context "when using the ESTermFilter visitor" do
+  context "when using the ArelFilter visitor" do
 
     before {
       visitor.mode = :arel
@@ -184,76 +184,76 @@ describe MSFLVisitors::Visitor do
           expect(result).to eq(%(cars[:lhs].gte(10.52)))
         end
       end
-      #
-      # describe "a LessThan node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::LessThan.new left, right }
-      #
-      #   let(:right) { MSFLVisitors::Nodes::Number.new 133.7 }
-      #
-      #   it "returns: { range: { lhs: { lt: 133.7 } } }" do
-      #     expect(result).to eq({ range: { lhs: { lt: 133.7 } } })
-      #   end
-      # end
-      #
-      # describe "a LessThanEqual node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::LessThanEqual.new left, right }
-      #
-      #   let(:right) { MSFLVisitors::Nodes::Date.new Date.today }
-      #
-      #   it "returns: { range: { lhs: { lte: \"#{Date.today}\" } } }" do
-      #     expect(result).to eq({ range: { lhs: { lte: "#{Date.today}" } } })
-      #   end
-      # end
-      #
-      # describe "a QueryString node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::QueryString.new left, right }
-      #
-      #   let(:right) { MSFLVisitors::Nodes::Word.new "happy" }
-      #
-      #   it %(returns: { query: { query_string: { default_field: "lhs", query: "happy" } } }) do
-      #     expect(result).to eq({ query: { query_string: { default_field: "lhs", query: "happy" } } })
-      #   end
-      # end
-      #
-      # describe "a Filter node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::Filter.new filtered_nodes }
-      #
-      #   let(:filtered_nodes) do
-      #     [
-      #         MSFLVisitors::Nodes::GreaterThanEqual.new(
-      #             MSFLVisitors::Nodes::Field.new(:value),
-      #             MSFLVisitors::Nodes::Number.new(1000))
-      #     ]
-      #   end
-      #
-      #   it "returns: { range: { value: { gte: 1000 } } }" do
-      #     expect(result).to eq({ range: { value: { gte: 1000 } } })
-      #   end
-      #
-      #   context "when the filter has multiple children" do
-      #
-      #     let(:filtered_nodes) do
-      #       [
-      #           MSFLVisitors::Nodes::Equal.new(
-      #               MSFLVisitors::Nodes::Field.new(:make),
-      #               MSFLVisitors::Nodes::Word.new("Chevy")
-      #           ),
-      #           MSFLVisitors::Nodes::GreaterThanEqual.new(
-      #               MSFLVisitors::Nodes::Field.new(:value),
-      #               MSFLVisitors::Nodes::Number.new(1000))
-      #       ]
-      #     end
-      #
-      #     it "returns: { and: [{ term: { make: \"Chevy\" } },{ range: { value: { gte: 1000 } } }] }" do
-      #       expect(result).to eq({ and: [{ term: { make: "Chevy" } },{ range: { value: { gte: 1000 } } }] })
-      #     end
-      #   end
-      # end
-      #
+
+      describe "a LessThan node" do
+
+        let(:node) { MSFLVisitors::Nodes::LessThan.new left, right }
+
+        let(:right) { MSFLVisitors::Nodes::Number.new 133.7 }
+
+        it %(returns: 'cars[:lhs].lt(133.7)') do
+          expect(result).to eq(%(cars[:lhs].lt(133.7)))
+        end
+      end
+
+      describe "a LessThanEqual node" do
+
+        let(:node) { MSFLVisitors::Nodes::LessThanEqual.new left, right }
+
+        let(:right) { MSFLVisitors::Nodes::Date.new Date.today }
+
+        it %(returns: 'cars[:lhs].lte(#{Date.today})') do
+          expect(result).to eq(%(cars[:lhs].lte("#{Date.today}")))
+        end
+      end
+
+      describe "a QueryString node" do
+
+        let(:node) { MSFLVisitors::Nodes::QueryString.new left, right }
+
+        let(:right) { MSFLVisitors::Nodes::Word.new "happy" }
+
+        it %(returns: "lhs LIKE '%happy%'") do
+          expect(result).to eq(%(lhs LIKE '%happy%'))
+        end
+      end
+
+      describe "a Filter node" do
+
+        let(:node) { MSFLVisitors::Nodes::Filter.new filtered_nodes }
+
+        let(:filtered_nodes) do
+          [
+              MSFLVisitors::Nodes::GreaterThanEqual.new(
+                  MSFLVisitors::Nodes::Field.new(:value),
+                  MSFLVisitors::Nodes::Number.new(1000))
+          ]
+        end
+
+        it %(returns: 'cars[:value].gte(1000)') do
+          expect(result).to eq(%(cars[:value].gte(1000)))
+        end
+
+        context "when the filter has multiple children" do
+
+          let(:filtered_nodes) do
+            [
+                MSFLVisitors::Nodes::Equal.new(
+                    MSFLVisitors::Nodes::Field.new(:make),
+                    MSFLVisitors::Nodes::Word.new("Chevy")
+                ),
+                MSFLVisitors::Nodes::GreaterThanEqual.new(
+                    MSFLVisitors::Nodes::Field.new(:value),
+                    MSFLVisitors::Nodes::Number.new(1000))
+            ]
+          end
+
+          it %(returns: 'cars[:make].eq("Chevy").and(cars[:value].gte(1000))') do
+            expect(result).to eq(%(cars[:make].eq("Chevy").and(cars[:value].gte(1000))))
+          end
+        end
+      end
+
       # describe "an And node" do
       #
       #   let(:first_field) { MSFLVisitors::Nodes::Field.new "first_field" }
@@ -350,102 +350,102 @@ describe MSFLVisitors::Visitor do
       #     end
       #   end
       # end
-      #
-      # describe "value nodes" do
-      #   describe "a Boolean node" do
-      #
-      #     let(:node) { MSFLVisitors::Nodes::Boolean.new value }
-      #
-      #     subject(:result) { node.accept visitor }
-      #
-      #     context "with a value of true" do
-      #
-      #       let(:value) { true }
-      #
-      #       it "returns: true" do
-      #         expect(result).to eq true
-      #       end
-      #     end
-      #
-      #     context "with a value of false" do
-      #
-      #       let(:value) { false }
-      #
-      #       it "returns: false" do
-      #         expect(result).to eq false
-      #       end
-      #     end
-      #   end
-      #
-      #   describe "a Word node" do
-      #
-      #     let(:word) { "node_content" }
-      #
-      #     let(:node) { MSFLVisitors::Nodes::Word.new word }
-      #
-      #     it "returns: the literal string" do
-      #       expect(result).to eq "#{word}"
-      #     end
-      #   end
-      # end
-      #
-      # describe "range value nodes" do
-      #
-      #   subject(:result) { node.accept visitor }
-      #
-      #   describe "a Date node" do
-      #
-      #     let(:today) { Date.today }
-      #
-      #     let(:node) { MSFLVisitors::Nodes::Date.new today }
-      #
-      #     it "returns: the date using iso8601 formatting" do
-      #       expect(result).to eq "#{today.iso8601}"
-      #     end
-      #   end
-      #
-      #   describe "a Time node" do
-      #
-      #     let(:now) { Time.now }
-      #
-      #     let(:node) { MSFLVisitors::Nodes::Time.new now }
-      #
-      #     it "returns: the date using iso8601 formatting" do
-      #       expect(result).to eq "#{now.iso8601}"
-      #     end
-      #   end
-      #
-      #   describe "a DateTime node" do
-      #
-      #     let(:now) { DateTime.now }
-      #
-      #     let(:node) { MSFLVisitors::Nodes::DateTime.new now }
-      #
-      #     it "returns: the date and time using iso8601 formatting" do
-      #       expect(result).to eq "#{now.iso8601}"
-      #     end
-      #   end
-      #
-      #   describe "a Number node" do
-      #
-      #     let(:number) { 123 }
-      #
-      #     let(:node) { MSFLVisitors::Nodes::Number.new number }
-      #
-      #     it "returns: 123" do
-      #       expect(result).to eq number
-      #     end
-      #
-      #     context "when the number is a float" do
-      #
-      #       let(:number) { 123.456 }
-      #
-      #       it "returns: the number with the same precision" do
-      #         expect(result).to eq number
-      #       end
-      #     end
-      #   end
-      # end
+
+      describe "value nodes" do
+        describe "a Boolean node" do
+
+          let(:node) { MSFLVisitors::Nodes::Boolean.new value }
+
+          subject(:result) { node.accept visitor }
+
+          context "with a value of true" do
+
+            let(:value) { true }
+
+            it "returns: true" do
+              expect(result).to eq true
+            end
+          end
+
+          context "with a value of false" do
+
+            let(:value) { false }
+
+            it "returns: false" do
+              expect(result).to eq false
+            end
+          end
+        end
+
+        describe "a Word node" do
+
+          let(:word) { "node_content" }
+
+          let(:node) { MSFLVisitors::Nodes::Word.new word }
+
+          it "returns: the literal string" do
+            expect(result).to eq "\"#{word}\""
+          end
+        end
+      end
+
+      describe "range value nodes" do
+
+        subject(:result) { node.accept visitor }
+
+        describe "a Date node" do
+
+          let(:today) { Date.today }
+
+          let(:node) { MSFLVisitors::Nodes::Date.new today }
+
+          it "returns: the date using iso8601 formatting" do
+            expect(result).to eq "\"#{today.iso8601}\""
+          end
+        end
+
+        describe "a Time node" do
+
+          let(:now) { Time.now }
+
+          let(:node) { MSFLVisitors::Nodes::Time.new now }
+
+          it "returns: the date using iso8601 formatting" do
+            expect(result).to eq "\"#{now.iso8601}\""
+          end
+        end
+
+        describe "a DateTime node" do
+
+          let(:now) { DateTime.now }
+
+          let(:node) { MSFLVisitors::Nodes::DateTime.new now }
+
+          it "returns: the date and time using iso8601 formatting" do
+            expect(result).to eq "\"#{now.iso8601}\""
+          end
+        end
+
+        describe "a Number node" do
+
+          let(:number) { 123 }
+
+          let(:node) { MSFLVisitors::Nodes::Number.new number }
+
+          it "returns: 123" do
+            expect(result).to eq number
+          end
+
+          context "when the number is a float" do
+
+            let(:number) { 123.456 }
+
+            it "returns: the number with the same precision" do
+              expect(result).to eq number
+            end
+          end
+        end
+      end
     end
   end
 end

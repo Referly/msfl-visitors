@@ -19,6 +19,10 @@ module MSFLVisitors
     def composable_expr_for(regex_as_literal_string)
       regex_as_literal_string[3..-4]
     end
+
+    def coerce_value_to_unquoted(value)
+      return value[1..-2] if value[0] == "\""
+    end
   end
 
   class Visitor
@@ -267,8 +271,8 @@ module MSFLVisitors
           Nodes::GreaterThan            => 'gt',
           Nodes::GreaterThanEqual       => 'gte',
           Nodes::Equal                  => 'eq',
-          Nodes::LessThan               => '<',
-          Nodes::LessThanEqual          => '<=',
+          Nodes::LessThan               => 'lt',
+          Nodes::LessThanEqual          => 'lte',
           Nodes::Match                  => '=~',
       }
 
@@ -277,7 +281,7 @@ module MSFLVisitors
       def visit(node)
         case node
           when  Nodes::Field
-            ":#{node.value.to_sym}"
+            "#{node.value.to_sym}"
           when Nodes::Regex
             regex_escape node.value.to_s
           when  Nodes::Word
@@ -288,7 +292,7 @@ module MSFLVisitors
             node.value
 
           when  Nodes::QueryString
-            %(q(query_string:{default_field:"#{node.left.accept(visitor)}", query:#{node.right.accept(visitor)}}))
+            %(#{node.left.accept(visitor)} LIKE '%#{coerce_value_to_unquoted node.right.accept(visitor)}%')
 
           when  Nodes::Match
             if node.right.is_a? Nodes::Set
@@ -304,15 +308,19 @@ module MSFLVisitors
               Nodes::Equal,
               Nodes::LessThan,
               Nodes::LessThanEqual
-            %(#{arel_table}[#{node.left.accept(visitor)}].#{BINARY_OPERATORS[node.class]}(#{node.right.accept(visitor)}))
+            %(#{arel_table}[:#{node.left.accept(visitor)}].#{BINARY_OPERATORS[node.class]}(#{node.right.accept(visitor)}))
           when  Nodes::Set
             "[ " + node.contents.map { |n| n.accept(visitor) }.join(" , ") + " ]"
           when Nodes::Filter
-            if node.contents.count == 1
-              node.contents.first.accept(visitor)
-            else
-              node.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
-            end
+            node.contents.reduce("") { |res, n|
+              next(n.accept(visitor)) unless res.length > 0
+              res + ".and(#{n.accept(visitor)})"
+            }
+            # if node.contents.count == 1
+            #   node.contents.first.accept(visitor)
+            # else
+            #   node.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
+            # end
 
           when Nodes::And
             if node.set.contents.count == 1
