@@ -316,19 +316,11 @@ module MSFLVisitors
               next(n.accept(visitor)) unless res.length > 0
               res + ".and(#{n.accept(visitor)})"
             }
-            # if node.contents.count == 1
-            #   node.contents.first.accept(visitor)
-            # else
-            #   node.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
-            # end
-
           when Nodes::And
-            if node.set.contents.count == 1
-              node.set.contents.first.accept(visitor)
-            else
-              node.set.contents.map { |n| "( " + n.accept(visitor) + " )" }.join(" & ")
-            end
-
+            node.set.contents.reduce("") { |res, n|
+              next(n.accept(visitor)) unless res.length > 0
+              res + ".and(#{n.accept(visitor)})"
+            }
           when Nodes::Foreign
             "#{node.left.accept visitor}.filter { #{node.right.accept visitor} }"
 

@@ -254,102 +254,102 @@ describe MSFLVisitors::Visitor do
         end
       end
 
-      # describe "an And node" do
-      #
-      #   let(:first_field) { MSFLVisitors::Nodes::Field.new "first_field" }
-      #
-      #   let(:first_value) { MSFLVisitors::Nodes::Word.new "first_word" }
-      #
-      #   let(:first) { MSFLVisitors::Nodes::Equal.new(first_field, first_value) }
-      #
-      #   let(:second_field) { MSFLVisitors::Nodes::Field.new "second_field" }
-      #
-      #   let(:second_value) { MSFLVisitors::Nodes::Word.new "second_word" }
-      #
-      #   let(:second) { MSFLVisitors::Nodes::Equal.new(second_field, second_value) }
-      #
-      #   let(:third_field) { MSFLVisitors::Nodes::Field.new "third_field" }
-      #
-      #   let(:third_value) { MSFLVisitors::Nodes::Word.new "third_word" }
-      #
-      #   let(:third) { MSFLVisitors::Nodes::Equal.new(third_field, third_value) }
-      #
-      #   let(:node) { MSFLVisitors::Nodes::And.new(set_node) }
-      #
-      #   context "when the And node has zero items" do
-      #
-      #     let(:set_node) { MSFLVisitors::Nodes::Set.new [] }
-      #
-      #     it "returns: { and: [] }" do
-      #       expect(result).to eq({ and: [] })
-      #     end
-      #   end
-      #
-      #   context "when the node has one item" do
-      #
-      #     let(:set_node) { MSFLVisitors::Nodes::Set.new [first] }
-      #
-      #     it "returns: { and: [{ term: { first_field: \"first_word\" }] }" do
-      #       expect(result).to eq({ and: [{ term: { first_field: "first_word" } }] })
-      #     end
-      #   end
-      #
-      #   context "when the node has two items" do
-      #
-      #     let(:set_node) { MSFLVisitors::Nodes::Set.new [first, second] }
-      #
-      #     it "returns: { and: [{ term: { first_field: \"first_word\" } },{ term: { second_field: \"second_word\" } }] }" do
-      #       expect(result).to eq({ and: [{ term: { first_field: "first_word" }}, { term: { second_field: "second_word" } }] })
-      #     end
-      #   end
-      #
-      #   context "when the node has three items" do
-      #
-      #     let(:set_node) { MSFLVisitors::Nodes::Set.new [first, second, third] }
-      #
-      #     it "returns: { and: [{ term: { first_field: \"first_word\" } },{ term: { second_field: \"second_word\" } },{ term: { third_field: \"third_word\" } }] }" do
-      #       expect(result).to eq({ and: [{ term: { first_field: "first_word" } },{ term: { second_field: "second_word" } },{ term: { third_field: "third_word" } }] })
-      #     end
-      #   end
-      #
-      #   context "when one of the node's items is a containment node" do
-      #
-      #     let(:node) do
-      #       MSFLVisitors::Nodes::And.new(
-      #           MSFLVisitors::Nodes::Set.new(
-      #               [
-      #                   MSFLVisitors::Nodes::Filter.new(
-      #                       [
-      #                           MSFLVisitors::Nodes::Containment.new(
-      #                               MSFLVisitors::Nodes::Field.new(:make),
-      #                               MSFLVisitors::Nodes::Set.new(
-      #                                   [
-      #                                       MSFLVisitors::Nodes::Word.new("Honda"),
-      #                                       MSFLVisitors::Nodes::Word.new("Chevy"),
-      #                                       MSFLVisitors::Nodes::Word.new("Volvo")
-      #                                   ]
-      #                               )
-      #                           )
-      #                       ]
-      #                   ),
-      #                   MSFLVisitors::Nodes::Filter.new(
-      #                       [
-      #                           MSFLVisitors::Nodes::GreaterThanEqual.new(
-      #                               MSFLVisitors::Nodes::Field.new(:value),
-      #                               MSFLVisitors::Nodes::Number.new(1000)
-      #                           )
-      #                       ]
-      #                   )
-      #               ]
-      #           )
-      #       )
-      #     end
-      #     it "returns: { and: [{ terms: { make: [\"Honda\",\"Chevy\",\"Volvo\"]} }, { range: { value: { gte: 1000 } } }] }" do
-      #       expected = { and: [{ terms: { make: ["Honda", "Chevy", "Volvo"]} }, { range: { value: { gte: 1000 } } }] }
-      #       expect(result).to eq expected
-      #     end
-      #   end
-      # end
+      describe "an And node" do
+
+        let(:first_field) { MSFLVisitors::Nodes::Field.new "first_field" }
+
+        let(:first_value) { MSFLVisitors::Nodes::Word.new "first_word" }
+
+        let(:first) { MSFLVisitors::Nodes::Equal.new(first_field, first_value) }
+
+        let(:second_field) { MSFLVisitors::Nodes::Field.new "second_field" }
+
+        let(:second_value) { MSFLVisitors::Nodes::Word.new "second_word" }
+
+        let(:second) { MSFLVisitors::Nodes::Equal.new(second_field, second_value) }
+
+        let(:third_field) { MSFLVisitors::Nodes::Field.new "third_field" }
+
+        let(:third_value) { MSFLVisitors::Nodes::Word.new "third_word" }
+
+        let(:third) { MSFLVisitors::Nodes::Equal.new(third_field, third_value) }
+
+        let(:node) { MSFLVisitors::Nodes::And.new(set_node) }
+
+        context "when the And node has zero items" do
+
+          let(:set_node) { MSFLVisitors::Nodes::Set.new [] }
+
+          it %(returns: '') do
+            expect(result).to eq('')
+          end
+        end
+
+        context "when the node has one item" do
+
+          let(:set_node) { MSFLVisitors::Nodes::Set.new [first] }
+
+          it %(returns: 'cars[:first_field].eq("first_word")') do
+            expect(result).to eq(%(cars[:first_field].eq("first_word")))
+          end
+        end
+
+        context "when the node has two items" do
+
+          let(:set_node) { MSFLVisitors::Nodes::Set.new [first, second] }
+
+          it %(returns: 'cars[:first_field].eq("first_word").and(cars[:second_field].eq("second_word"))') do
+            expect(result).to eq(%(cars[:first_field].eq("first_word").and(cars[:second_field].eq("second_word"))))
+          end
+        end
+
+        context "when the node has three items" do
+
+          let(:set_node) { MSFLVisitors::Nodes::Set.new [first, second, third] }
+
+          it %(returns: 'cars[:first_field].eq("first_word").and(cars[:second_field].eq("second_word")).and(cars[:third_field].eq("third_word"))') do
+            expect(result).to eq(%(cars[:first_field].eq("first_word").and(cars[:second_field].eq("second_word")).and(cars[:third_field].eq("third_word"))))
+          end
+        end
+
+        context "when one of the node's items is a containment node" do
+
+          let(:node) do
+            MSFLVisitors::Nodes::And.new(
+                MSFLVisitors::Nodes::Set.new(
+                    [
+                        MSFLVisitors::Nodes::Filter.new(
+                            [
+                                MSFLVisitors::Nodes::Containment.new(
+                                    MSFLVisitors::Nodes::Field.new(:make),
+                                    MSFLVisitors::Nodes::Set.new(
+                                        [
+                                            MSFLVisitors::Nodes::Word.new("Honda"),
+                                            MSFLVisitors::Nodes::Word.new("Chevy"),
+                                            MSFLVisitors::Nodes::Word.new("Volvo")
+                                        ]
+                                    )
+                                )
+                            ]
+                        ),
+                        MSFLVisitors::Nodes::Filter.new(
+                            [
+                                MSFLVisitors::Nodes::GreaterThanEqual.new(
+                                    MSFLVisitors::Nodes::Field.new(:value),
+                                    MSFLVisitors::Nodes::Number.new(1000)
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
+          end
+          it "returns: { and: [{ terms: { make: [\"Honda\",\"Chevy\",\"Volvo\"]} }, { range: { value: { gte: 1000 } } }] }" do
+            expected = { and: [{ terms: { make: ["Honda", "Chevy", "Volvo"]} }, { range: { value: { gte: 1000 } } }] }
+            expect(result).to eq expected
+          end
+        end
+      end
 
       describe "value nodes" do
         describe "a Boolean node" do
