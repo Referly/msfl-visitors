@@ -135,22 +135,22 @@ describe MSFLVisitors::Visitor do
       #     expect(subject).to eq({ terms: { lhs: ["item_one", "item_two", "item_three"] } })
       #   end
       # end
-      #
-      # describe "a Set node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::Set.new values }
-      #
-      #   let(:values) { MSFL::Types::Set.new([item_one, item_two]) }
-      #
-      #   let(:item_one) { MSFLVisitors::Nodes::Word.new "item_one" }
-      #
-      #   let(:item_two) { MSFLVisitors::Nodes::Word.new "item_two" }
-      #
-      #   it "results in: [\"item_one\", \"item_two\"]" do
-      #     expect(result).to eq ["item_one", "item_two"]
-      #   end
-      # end
-      #
+
+      describe "a Set node" do
+
+        let(:node) { MSFLVisitors::Nodes::Set.new values }
+
+        let(:values) { MSFL::Types::Set.new([item_one, item_two]) }
+
+        let(:item_one) { MSFLVisitors::Nodes::Word.new "item_one" }
+
+        let(:item_two) { MSFLVisitors::Nodes::Word.new "item_two" }
+
+        it %(results in: '["item_one", "item_two"]') do
+          expect(result).to eq %(["item_one", "item_two"])
+        end
+      end
+
       describe "an Equal node" do
 
         let(:node) { MSFLVisitors::Nodes::Equal.new left, right }
@@ -344,8 +344,8 @@ describe MSFLVisitors::Visitor do
                 )
             )
           end
-          it "returns: { and: [{ terms: { make: [\"Honda\",\"Chevy\",\"Volvo\"]} }, { range: { value: { gte: 1000 } } }] }" do
-            expected = { and: [{ terms: { make: ["Honda", "Chevy", "Volvo"]} }, { range: { value: { gte: 1000 } } }] }
+          it %(returns: 'cars[:make].in(["Honda", "Chevy", "Volvo"]).and(cars[:value].gte(1000))') do
+            expected = %(cars[:make].in(["Honda", "Chevy", "Volvo"]).and(cars[:value].gte(1000)))
             expect(result).to eq expected
           end
         end

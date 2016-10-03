@@ -267,7 +267,7 @@ module MSFLVisitors
       end
 
       BINARY_OPERATORS = {
-          Nodes::Containment            => '==',
+          Nodes::Containment            => 'in',
           Nodes::GreaterThan            => 'gt',
           Nodes::GreaterThanEqual       => 'gte',
           Nodes::Equal                  => 'eq',
@@ -310,7 +310,7 @@ module MSFLVisitors
               Nodes::LessThanEqual
             %(#{arel_table}[:#{node.left.accept(visitor)}].#{BINARY_OPERATORS[node.class]}(#{node.right.accept(visitor)}))
           when  Nodes::Set
-            "[ " + node.contents.map { |n| n.accept(visitor) }.join(" , ") + " ]"
+            "[" + node.contents.map { |n| n.accept(visitor) }.join(", ") + "]"
           when Nodes::Filter
             node.contents.reduce("") { |res, n|
               next(n.accept(visitor)) unless res.length > 0
