@@ -116,25 +116,25 @@ describe MSFLVisitors::Visitor do
       #     expect(subject).to eq({ has_child: { type: "person", filter: { term: { age: 25 } } } })
       #   end
       # end
-      #
-      # describe "a Containment node" do
-      #
-      #   let(:node) { MSFLVisitors::Nodes::Containment.new field, values }
-      #
-      #   let(:values) { MSFLVisitors::Nodes::Set.new(MSFL::Types::Set.new([item_one, item_two, item_three])) }
-      #
-      #   let(:item_one) { MSFLVisitors::Nodes::Word.new "item_one" }
-      #
-      #   let(:item_two) { MSFLVisitors::Nodes::Word.new "item_two" }
-      #
-      #   let(:item_three) { MSFLVisitors::Nodes::Word.new "item_three" }
-      #
-      #   let(:field)  { left }
-      #
-      #   it "results in: { terms: { lhs: [\"item_one\", \"item_two\", \"item_three\"] } }" do
-      #     expect(subject).to eq({ terms: { lhs: ["item_one", "item_two", "item_three"] } })
-      #   end
-      # end
+
+      describe "a Containment node" do
+
+        let(:node) { MSFLVisitors::Nodes::Containment.new field, values }
+
+        let(:values) { MSFLVisitors::Nodes::Set.new(MSFL::Types::Set.new([item_one, item_two, item_three])) }
+
+        let(:item_one) { MSFLVisitors::Nodes::Word.new "item_one" }
+
+        let(:item_two) { MSFLVisitors::Nodes::Word.new "item_two" }
+
+        let(:item_three) { MSFLVisitors::Nodes::Word.new "item_three" }
+
+        let(:field)  { left }
+
+        it %(results in: 'cars[:lhs].in(["item_one", "item_two", "item_three"])') do
+          expect(subject).to eq(%(cars[:lhs].in(["item_one", "item_two", "item_three"])))
+        end
+      end
 
       describe "a Set node" do
 
